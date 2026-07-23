@@ -40,7 +40,7 @@ app.post('/api/auth/login', async (req, res, next) => {
 app.get('/api/auth/me', auth, (req, res) => res.json({ user: publicUser(req.user) }));
 
 app.get('/api/workspaces', auth, async (req, res, next) => {
-  try { res.json(await Workspace.find({ members: req.user._id }).populate('members', 'name email avatar').sort('-createdAt')); } catch (e) { next(e); }
+  try { res.json(await Workspace.find({ members: req.user._id }).populate('members', 'name email avatar').sort({ createdAt: 1, _id: 1 })); } catch (e) { next(e); }
 });
 app.post('/api/workspaces', auth, async (req, res, next) => {
   try { res.status(201).json(await Workspace.create({ name: req.body.name, owner: req.user._id, members: [req.user._id] })); } catch (e) { next(e); }
@@ -55,8 +55,11 @@ app.post('/api/workspaces/:workspaceId/members', auth, workspaceMember, async (r
   } catch (e) { next(e); }
 });
 
-app.get('/api/tasks', auth, workspaceMember, async (req, res, next) => {
-  try { res.json(await Task.find({ workspace: req.query.workspace }).populate('assignee createdBy', 'name email avatar').sort('-createdAt')); } catch (e) { next(e); }
+app.get('/api/tasks', auth, async (req, res, next) => {
+  try {
+    const workspaceIds = await Workspace.find({ members: req.user._id }).distinct('_id');
+    res.json(await Task.find({ workspace: { $in: workspaceIds } }).populate('assignee createdBy', 'name email avatar').sort('-createdAt'));
+  } catch (e) { next(e); }
 });
 app.post('/api/tasks', auth, workspaceMember, async (req, res, next) => {
   try {

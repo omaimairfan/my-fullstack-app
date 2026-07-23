@@ -46,7 +46,11 @@ function TaskModal({ task, workspace, onClose, onSave }) {
 function Dashboard({ user, onLogout }) {
   const [workspaces, setWorkspaces] = useState([]), [workspace, setWorkspace] = useState(null), [tasks, setTasks] = useState([]), [notifications, setNotifications] = useState([]), [modal, setModal] = useState(false), [editing, setEditing] = useState(null), [query, setQuery] = useState(''), [noticeOpen, setNoticeOpen] = useState(false), [mobileNav, setMobileNav] = useState(false), [toast, setToast] = useState('');
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 7 } }));
-  const loadWorkspaces = async () => { const ws = await api('/workspaces'); setWorkspaces(ws); setWorkspace(x => x || ws[0]); };
+  const loadWorkspaces = async () => {
+    const ws = await api('/workspaces');
+    setWorkspaces(ws);
+    setWorkspace(ws[0] || null);
+  };
   useEffect(() => { loadWorkspaces(); api('/notifications').then(setNotifications); }, []);
   useEffect(() => { if (!workspace) return; api(`/tasks?workspace=${workspace._id}`).then(setTasks); const socket = io(SOCKET); socket.emit('workspace:join', workspace._id); socket.on('task:created', t => setTasks(x => x.some(v => v._id === t._id) ? x : [t, ...x])); socket.on('task:updated', t => setTasks(x => x.map(v => v._id === t._id ? t : v))); socket.on('task:deleted', ({ id }) => setTasks(x => x.filter(v => v._id !== id))); return () => socket.disconnect(); }, [workspace?._id]);
   const save = async data => { try { const updated = await api(editing ? `/tasks/${editing._id}` : '/tasks', { method: editing ? 'PATCH' : 'POST', body: JSON.stringify(data) }); setTasks(x => editing ? x.map(t => t._id === updated._id ? updated : t) : [updated, ...x.filter(t => t._id !== updated._id)]); setModal(false); setEditing(null); setToast(editing ? 'Task updated' : 'Task created'); setTimeout(() => setToast(''), 2200); } catch (e) { setToast(e.message); } };
