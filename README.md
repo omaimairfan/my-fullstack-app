@@ -1,3 +1,4 @@
+
 # TaskFlow — Team Task Manager
 
 A full-stack task management MVP with secure authentication, shared workspaces, a drag-and-drop status board, assignment notifications, and realtime task updates.
@@ -36,3 +37,6 @@ Dependencies are already installed in this workspace. For a fresh clone, run `np
 - `GET /api/notifications`, `PATCH /api/notifications/read`
 
 For invitations, the invited person must first have a TaskFlow account. The notification system is currently in-app; email delivery can be added later through a provider such as Resend or SendGrid.
+=======
+# my-fullstack-app
+>>>>>>> 54f8871e096c99597421162f862083587ffe4bed
